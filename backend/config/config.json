@@ -1,0 +1,22 @@
+{ 
+    "development": {
+      "username": "postgres",
+      "password": "password",
+      "database": "ecommerce",
+      "host": "localhost",
+      "port": 5432,
+      "dialect": "postgres", 
+      "logging": true
+    },
+    "database": {
+      "user": "postgres",
+      "password": "password",
+      "name": "ecommerce",
+      "host": "localhost",
+      "port": 5432,
+      "dialect": "postgres",
+      "logging": true
+    },
+    "jwtSecret": "4185d63cb61d40092a147db34c7b505aa4fbad165ef700e2e70e0d9e67eecc66"
+  }
+  
