@@ -18,6 +18,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      user_name: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       user_activeStatus: {
         type: Sequelize.BOOLEAN,
         defaultValue: true

@@ -72,6 +72,7 @@ import { useWatches } from '../composables/useWatches'
 import { useCart } from '../composables/useCart';
 import { useCheckout } from '../composables/useCheckout'
 
+const userPreferences = ref<string[]>([]);
 const router = useRouter()
 const auth = useAuth()
 const { watches, fetchWatches, isLoading, error } = useWatches()
@@ -94,9 +95,14 @@ const {
   error: checkoutError
 } = useCheckout()
 
+const {
+  fetchUserProfile
+} = useAuth()
+
+const selectedCategory = ref('All');  
 const showLogoutConfirm = ref(false)
 const characteristics = ['Premium', 'Classic', 'Sporty', 'Luxury', 'Affordable', 'Smartwatch']
-const categories = ['Latest Products', 'On Sale', 'My Favorites']
+const categories = ['All','Latest Products', 'On Sale', 'My Preferences']
 const selectedCharacteristics = ref<string[]>([])
 const searchQuery = ref('')
 const isCartOpen = ref(false)
@@ -148,18 +154,37 @@ interface CartItem {
 
 const filteredProducts = computed(() => {
   return watches.value.filter((product) => {
+    const currentDate = new Date();
+    const sevenDaysAgo = new Date(currentDate.setDate(currentDate.getDate() - 7));
+    const createdAtDate = new Date(product.created_at);
+    const isLatestProduct = createdAtDate >= sevenDaysAgo;
+
     const matchesCharacteristics =
       selectedCharacteristics.value.length === 0 ||
       selectedCharacteristics.value.some((characteristic) =>
         product.characteristic_name?.includes(characteristic)
-      )
+      );
+
+    const matchesPreferences =
+      userPreferences.value.length === 0 ||
+      userPreferences.value.some((preference) =>
+        product.characteristic_name?.includes(preference)
+      );
+
     const matchesSearch =
       searchQuery.value === '' ||
-      product.watch_name.toLowerCase().includes(searchQuery.value.toLowerCase())||
-      product.characteristic_name?.toLowerCase().includes(searchQuery.value.toLowerCase())
-    return matchesCharacteristics && matchesSearch
-  })
-})
+      product.watch_name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      product.characteristic_name?.toLowerCase().includes(searchQuery.value.toLowerCase());
+
+    if (selectedCategory.value === 'Latest Products') {
+      return isLatestProduct && matchesCharacteristics && matchesPreferences && matchesSearch;
+    } else if (selectedCategory.value === 'My Preferences') {
+      return matchesCharacteristics && matchesPreferences && matchesSearch;
+    } else {
+      return matchesCharacteristics && matchesPreferences && matchesSearch;
+    }
+  });
+});
 
 const formatPrice = (amount: number): string => {
   return '₱' + amount.toLocaleString('en-PH', {
@@ -209,9 +234,25 @@ const toggleCartModal = () => {
   isCartOpen.value = !isCartOpen.value
 }
 
-const filterCategory = (category: string) => {
-  console.log('Filtered by category:', category)
-}
+const filterCategory = async (category: string) => {
+  console.log('Filtered by category:', category);
+  selectedCategory.value = category; // Update the selected category
+
+  if (category === 'My Preferences') {
+    try {
+      const userProfile = await fetchUserProfile();
+      userPreferences.value = userProfile.preferences;
+    } catch (error) {
+      console.error('Failed to fetch user preferences:', error);
+    }
+  } else if (category === 'All') {
+    userPreferences.value = [];
+  }
+};
+
+
+
+
 
 const handleCheckoutSubmit = async (data: { shipping_address: string; payment_method: string }) => {
   try {

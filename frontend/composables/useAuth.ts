@@ -9,6 +9,7 @@ export function useAuth() {
     id: number;
     user_email: string;
     user_name: string;
+    preferences: string[];
   }
 
   const user = ref<User | null>(null);
